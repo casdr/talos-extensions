@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2023-11-21T11:31:57Z by kres latest.
+# Generated on 2023-12-01T10:26:12Z by kres latest.
 
 # common variables
 
@@ -66,6 +66,7 @@ TARGETS += i915-ucode
 TARGETS += intel-ice-firmware
 TARGETS += intel-ucode
 TARGETS += iscsi-tools
+TARGETS += mdadm
 TARGETS += nut-client
 TARGETS += nvidia-container-toolkit
 TARGETS += nvidia-fabricmanager
@@ -83,7 +84,7 @@ NONFREE_TARGETS = nonfree-kmod-nvidia
 # extra variables
 
 EXTENSIONS_IMAGE_REF ?= $(REGISTRY_AND_USERNAME)/extensions:$(TAG)
-PKGS ?= v1.6.0-alpha.0-31-g3aea711
+PKGS ?= v1.6.0
 
 # help menu
 
