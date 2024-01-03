@@ -25,6 +25,7 @@ spec:
     - nvidia-fabricmanager
     - nvidia-open-gpu-kernel-modules
     - qemu-guest-agent
+    - qlogic-firmware
     - stargz-snapshotter
     - tailscale
     - thunderbolt
@@ -45,17 +46,24 @@ kind: common.Build
 spec:
     ignoredPaths:
         - "internal/extensions/image-digests"
+        - "internal/extensions/descriptions.yaml"
 ---
 kind: auto.CustomSteps
 spec:
   steps:
+    - name: check-dirty
+      toplevel: true
     - name: extensions
       toplevel: true
     - name: extensions-metadata
       toplevel: true
     - name: internal/extensions/image-digests
       toplevel: true
+    - name: internal/extensions/descriptions.yaml
+      toplevel: true
     - name: sign-images
+      toplevel: true
+    - name: extensions-info
       toplevel: true
 ---
 kind: custom.Step
@@ -68,9 +76,9 @@ spec:
       - name: EXTENSIONS_IMAGE_REF
         defaultValue: $(REGISTRY_AND_USERNAME)/extensions:$(TAG)
       - name: PKGS
-        defaultValue: v1.7.0-alpha.0
+        defaultValue: v1.7.0-alpha.0-7-g4c59641
     depends:
-      - internal/extensions/image-digests
+      - internal/extensions/descriptions.yaml
     script:
       - |
         @$(MAKE) docker-$@ TARGET_ARGS="--tag=$(EXTENSIONS_IMAGE_REF) --push=$(PUSH)"
@@ -104,7 +112,24 @@ spec:
       - extensions-metadata
     script:
       - |
+        @echo "Generating image digests..."
         @cat _out/extensions-metadata | xargs -I{} sh -c 'echo {}@$$(crane digest {})' > internal/extensions/image-digests
+---
+kind: custom.Step
+name: internal/extensions/descriptions.yaml
+spec:
+  makefile:
+    enabled: true
+    phony: true
+    depends:
+      - internal/extensions/image-digests
+    script:
+      - |
+        @echo "Generating image descriptions..."
+        @echo -n "" > internal/extensions/descriptions.yaml
+        @for image in $(shell cat internal/extensions/image-digests); do \
+          crane export $$image - | tar x -O --occurrence=1 manifest.yaml | yq -r ". += {\"$$image\": {\"author\": .metadata.author, \"description\": .metadata.description}} | del(.metadata, .version)" - >> internal/extensions/descriptions.yaml; \
+        done
 ---
 kind: custom.Step
 name: sign-images
